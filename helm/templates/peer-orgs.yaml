@@ -1,0 +1,248 @@
+{{- range $org := .Values.peerOrgs }}
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  namespace: default
+  name: ca-{{ $org.domain }}
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+       app: hyperledger
+       role: ca
+       org: {{ $org.domain }}
+       name: ca
+    spec:
+      containers:
+        - name: ca
+          image: hyperledger/fabric-ca:1.4.4
+          env:
+          - name:  FABRIC_CA_SERVER_PORT
+            value: "7054"
+          - name:  FABRIC_CA_HOME
+            value: /etc/hyperledger/fabric-ca-server
+          - name:  FABRIC_CA_SERVER_CA_NAME
+            value: ca-{{ $org.orgid }}
+          - name:  FABRIC_CA_SERVER_TLS_ENABLED
+            value: "true"
+          - name: FABRIC_CA_SERVER_TLS_CERTFILE
+            value: /etc/hyperledger/fabric-ca-server-config/ca.{{ $org.domain }}-cert.pem
+          - name: FABRIC_CA_SERVER_TLS_KEYFILE
+            value: /etc/hyperledger/fabric-ca-server-config/{{ $org.caFileName }}
+          ports:
+            - containerPort: 7054
+          command: ["sh"]
+          args:  ["-c", "fabric-ca-server start --ca.certfile /etc/hyperledger/fabric-ca-server-config/ca.{{ $org.domain }}-cert.pem --ca.keyfile /etc/hyperledger/fabric-ca-server-config/{{ $org.caFileName }} -b admin:adminpw -d"]
+          volumeMounts:
+            - mountPath: /etc/hyperledger/fabric-ca-server-config/
+              name: peer-orgs
+              subPath: crypto-config/peerOrganizations/{{ $org.domain }}/ca/
+      volumes:
+        - name: peer-orgs
+          persistentVolumeClaim:
+            claimName: orderer-pvc
+--- 
+apiVersion: v1
+kind: Service
+metadata:
+   namespace: default
+   name: ca
+spec:
+ selector:
+   app: hyperledger
+   role: ca
+   org: {{ $org.domain }}
+   name: ca
+ clusterIP: None
+ ports:
+   - name: endpoint
+     protocol: TCP
+     port: 7054
+     targetPort: 7054	 
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  namespace: default
+  name:	peer0-{{ $org.domain }}
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+       app: hyperledger
+       role: peer
+       peer-id: peer0
+       org: peer0.{{ $org.domain }}
+    spec:
+      containers:
+      - name: peer0-{{ $org.orgid }}
+        image: hyperledger/fabric-peer:1.4.4
+        env:
+        - name: CORE_VM_ENDPOINT
+          value: "unix:///host/var/run/docker.sock"
+        - name: FABRIC_LOGGING_SPEC
+          value: "DEBUG"
+        - name: CORE_PEER_TLS_ENABLED
+          value: "true"
+        - name: CORE_PEER_GOSSIP_USELEADERELECTION
+          value: "true"
+        - name: CORE_PEER_GOSSIP_ORGLEADER
+          value: "false" 
+        - name: CORE_PEER_PROFILE_ENABLED
+          value: "true"
+        - name: CORE_PEER_TLS_CERT_FILE
+          value: "/etc/hyperledger/fabric/tls/server.crt"
+        - name: CORE_PEER_TLS_KEY_FILE
+          value: "/etc/hyperledger/fabric/tls/server.key"
+        - name: CORE_PEER_TLS_ROOTCERT_FILE
+          value: "/etc/hyperledger/fabric/tls/ca.crt"
+        - name: CORE_PEER_ID
+          value: "peer0.{{ $org.domain }}"
+        - name: CORE_PEER_ADDRESS
+          value: "peer0.{{ $org.domain }}:7051"
+        - name: CORE_PEER_CHAINCODELISTENADDRESS
+          value: "0.0.0.0:7052"		  
+        - name: CORE_PEER_GOSSIP_EXTERNALENDPOINT
+          value: "peer0.{{ $org.domain }}:7051"
+        - name: CORE_PEER_LOCALMSPID
+          value: {{ $org.MSPId }}
+        - name: CORE_PEER_ADDRESSAUTODETECT
+          value: "true"
+        - name: CORE_OPERATIONS_LISTENADDRESS
+          value: "0.0.0.0:9443"
+        - name: CORE_METRICS_PROVIDER
+          value: "prometheus"		  		  
+        workingDir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+        
+        ports:
+         - containerPort: 7051
+         - containerPort: 7052
+         - containerPort: 7053
+         - containerPort: 9443
+
+        command: ["peer"]
+        args: ["node","start"]
+        volumeMounts:
+          - mountPath: /etc/hyperledger/fabric/msp
+            name: peer-orgs
+            subPath: crypto-config/peerOrganizations/{{ $org.domain }}/peers/peer0.{{ $org.domain }}/msp
+          - mountPath: /etc/hyperledger/fabric/tls
+            name: peer-orgs
+            subPath: crypto-config/peerOrganizations/{{ $org.domain }}/peers/peer0.{{ $org.domain }}/tls
+          - mountPath: /var/hyperledger/production
+            name: peer-orgs
+            subPath: data/peer0.{{ $org.domain }}
+          - mountPath: /host/var/run/
+            name: run
+          - mountPath: /etc/hosts
+            name: hosts			
+      volumes:
+        - name: peer-orgs
+          persistentVolumeClaim:
+            claimName: orderer-pvc
+        - name: run
+          hostPath:
+            path: /var/run
+        - name: hosts
+          hostPath:
+            path: /etc/hosts			
+---
+apiVersion: v1
+kind: Service
+metadata:
+   namespace: default
+   name: peer0
+spec:
+ selector:
+   app: hyperledger
+   role: peer
+   peer-id: peer0
+   org: peer0.{{ $org.domain }}
+ clusterIP: None
+ ports:
+   - name: listen-endpoint
+     protocol: TCP
+     port: 7051
+
+   - name: chaincode-listen
+     protocol: TCP
+     port: 7052
+
+   - name: event-listen
+     protocol: TCP
+     port: 7053
+
+---
+{{- end }}
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+   namespace: default
+   name: cli-org1.example.com
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+       app: cli
+    spec:
+      containers:
+        - name: cli
+          image:  hyperledger/fabric-tools:1.4.4
+          env:
+          - name: CORE_VM_ENDPOINT
+            value: "unix:///host/var/run/docker.sock"
+          - name: GOPATH
+            value: "/opt/gopath"
+          - name: FABRIC_LOGGING_SPEC
+            value: "DEBUG"
+          - name: CORE_PEER_ID
+            value: "cli"
+          - name: CORE_PEER_TLS_ENABLED
+            value: "true"
+          - name: CORE_PEER_TLS_CERT_FILE
+            value: "/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/server.crt"
+          - name: CORE_PEER_TLS_KEY_FILE
+            value: "/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/peers/peer0.org1.example.com}/tls/server.key"
+          - name: CORE_PEER_TLS_ROOTCERT_FILE
+            value: "/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt"
+          - name: CORE_PEER_MSPCONFIGPATH
+            value: "/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp"
+          - name: CORE_PEER_ADDRESS
+            value: "peer0.org1.example.com:7051"
+          - name: CORE_PEER_LOCALMSPID
+            value: "Org1MSP"
+          workingDir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+          command: [ "/bin/bash", "-c", "--" ]
+          args: [ "while true; do sleep 30; done;" ]
+          volumeMounts:
+           - mountPath: /host/var/run/
+             name: run
+           - mountPath: /opt/gopath/src/github.com/hyperledger/fabric/examples/chaincode/go/
+             name: peer-orgs
+             subPath: chaincode/go/
+           - mountPath: /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/
+             name: peer-orgs
+             subPath: crypto-config
+           - mountPath: /opt/gopath/src/github.com/hyperledger/fabric/peer/channel-artifacts/
+             name: peer-orgs
+             subPath: channel-artifacts
+           - mountPath: /opt/gopath/src/github.com/hyperledger/fabric/peer/scripts
+             name: peer-orgs
+             subPath: scripts
+           - mountPath: /etc/hosts
+             name: hosts
+      volumes:
+        - name: peer-orgs
+          persistentVolumeClaim:
+            claimName: orderer-pvc
+        - name: run
+          hostPath:
+            path: /var/run
+        - name: hosts
+          hostPath:
+            path: /etc/hosts	
