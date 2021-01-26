@@ -265,6 +265,8 @@ spec:
             value: "/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt"
           - name: CORE_PEER_MSPCONFIGPATH
             value: "/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp"
+          - name: ORDER_TLS_CA
+            value: "/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer0.example.com/msp/tlscacerts/tlsca.example.com-cert.pem"
           - name: CORE_PEER_ADDRESS
             value: "peer0.org1.example.com:7051"
           - name: CORE_PEER_LOCALMSPID
