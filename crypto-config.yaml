@@ -1,32 +1,45 @@
 OrdererOrgs:
   - Name: Orderer
-    Domain: example.com
+    Domain: example-com
+    EnableNodeOUs: true	
     Specs:
-      - Hostname: orderer0
-      - Hostname: orderer1
-      - Hostname: orderer2
+      - Hostname: orderer0-example-com
+        CommonName: orderer0-example-com
+      - Hostname: orderer1-example-com
+        CommonName: orderer1-example-com
+      - Hostname: orderer2-example-com
+        CommonName: orderer2-example-com
 PeerOrgs:
   - Name: Org1
-    Domain: org1.example.com
+    Domain: org1-example-com
     EnableNodeOUs: true
-    Template:
-      Count: 2
+    Specs:
+      - Hostname: peer0-org1-example-com
+        CommonName: peer0-org1-example-com
+      - Hostname: peer1-org1-example-com
+        CommonName: peer1-org1-example-com
     Users:
       Count: 2
 
   - Name: Org2
-    Domain: org2.example.com
+    Domain: org2-example-com
     EnableNodeOUs: true
-    Template:
-      Count: 2
+    Specs:
+      - Hostname: peer0-org2-example-com
+        CommonName: peer0-org2-example-com
+      - Hostname: peer1-org2-example-com
+        CommonName: peer1-org2-example-com
     Users:
       Count: 2
 
   - Name: Org3
-    Domain: org3.example.com
+    Domain: org3-example-com
     EnableNodeOUs: true
-    Template:
-      Count: 2
+    Specs:
+      - Hostname: peer0-org3-example-com
+        CommonName: peer0-org3-example-com
+      - Hostname: peer1-org3-example-com
+        CommonName: peer1-org3-example-com
     Users:
       Count: 2
 

@@ -17,14 +17,22 @@ kafkaName: kafka
 kafkaReplica: 4
 kafkaZkConnect: zookeeper1:2181,zookeeper2:2181,zookeeper3:2181
 
-ordererNamespace: example.com
+ordererNamespace: example-com
 ordererName: orderer
 ordererReplica: 3
 
 currentDirPath: /home/raft
 
 peerOrgs:
-  - domain: org1.example.com
-    caFileName: 85c138457cec96c7e8ff32546e12aad112d899b8ab6c17b55ca168d60cde12a0_sk
+  - domain: org1-example-com
+    caFileName: 59e15f9850384d8ef0a8b38f73926427f1c360449a46ccd41b69f9e632635ef7_sk
     MSPId: Org1MSP
     orgid: org1
+  - domain: org2-example-com
+    caFileName: fbd5c9522c07a756369588aa9ea04528d060010c8038bbcfb50851f260580cfb_sk
+    MSPId: Org2MSP
+    orgid: org2
+  - domain: org3-example-com
+    caFileName: b7bab21244eb11c85239659cefdf8902fa98b9d5ee813a9ee79125c4897d35ab_sk
+    MSPId: Org3MSP
+    orgid: org3

@@ -4,7 +4,7 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   namespace: default
-  name: couchdb-{{ $org.domain }}
+  name: couchdb0-{{ $org.domain }}
 spec:
   replicas: 1
   template:
@@ -30,14 +30,14 @@ apiVersion: v1
 kind: Service
 metadata:
    namespace: default
-   name: couchdb
+   name: couchdb0-{{ $org.domain }}
 spec:
+ type: NodePort 
  selector:
    app: hyperledger
    role: couchdb
    org: {{ $org.domain }}
    name: couchdb
- clusterIP: None
  ports:
    - name: endpoint
      protocol: TCP
@@ -93,14 +93,14 @@ apiVersion: v1
 kind: Service
 metadata:
    namespace: default
-   name: ca
+   name: ca-{{ $org.domain }}
 spec:
+ type: NodePort 
  selector:
    app: hyperledger
    role: ca
    org: {{ $org.domain }}
    name: ca
- clusterIP: None
  ports:
    - name: endpoint
      protocol: TCP
@@ -145,13 +145,13 @@ spec:
         - name: CORE_PEER_TLS_ROOTCERT_FILE
           value: "/etc/hyperledger/fabric/tls/ca.crt"
         - name: CORE_PEER_ID
-          value: "peer0.{{ $org.domain }}"
+          value: "peer0-{{ $org.domain }}"
         - name: CORE_PEER_ADDRESS
-          value: "peer0.{{ $org.domain }}:7051"
+          value: "peer0-{{ $org.domain }}:7051"
         - name: CORE_PEER_CHAINCODELISTENADDRESS
           value: "0.0.0.0:7052"		  
         - name: CORE_PEER_GOSSIP_EXTERNALENDPOINT
-          value: "peer0.{{ $org.domain }}:7051"
+          value: "peer0-{{ $org.domain }}:7051"
         - name: CORE_PEER_LOCALMSPID
           value: {{ $org.MSPId }}
         - name: CORE_PEER_ADDRESSAUTODETECT
@@ -159,7 +159,7 @@ spec:
         - name: CORE_LEDGER_STATE_STATEDATABASE
           value: "CouchDB"
         - name: CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS
-          value: "peer0.{{ $org.domain }}:5984"
+          value: "couchdb0-{{ $org.domain }}:5984"
         - name: CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME
           value: "admin"
         - name: CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD
@@ -181,13 +181,13 @@ spec:
         volumeMounts:
           - mountPath: /etc/hyperledger/fabric/msp
             name: peer-orgs
-            subPath: crypto-config/peerOrganizations/{{ $org.domain }}/peers/peer0.{{ $org.domain }}/msp
+            subPath: crypto-config/peerOrganizations/{{ $org.domain }}/peers/peer0-{{ $org.domain }}/msp
           - mountPath: /etc/hyperledger/fabric/tls
             name: peer-orgs
-            subPath: crypto-config/peerOrganizations/{{ $org.domain }}/peers/peer0.{{ $org.domain }}/tls
+            subPath: crypto-config/peerOrganizations/{{ $org.domain }}/peers/peer0-{{ $org.domain }}/tls
           - mountPath: /var/hyperledger/production
             name: peer-orgs
-            subPath: data/peer0.{{ $org.domain }}
+            subPath: data/peer0-{{ $org.domain }}
           - mountPath: /host/var/run/
             name: run
           - mountPath: /etc/hosts
@@ -207,14 +207,14 @@ apiVersion: v1
 kind: Service
 metadata:
    namespace: default
-   name: peer0
+   name: peer0-{{ $org.domain }}
 spec:
+ type: NodePort 
  selector:
    app: hyperledger
    role: peer
    peer-id: peer0
    org: peer0.{{ $org.domain }}
- clusterIP: None
  ports:
    - name: listen-endpoint
      protocol: TCP
@@ -235,7 +235,7 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
    namespace: default
-   name: cli-org1.example.com
+   name: cli-org1-example-com
 spec:
   replicas: 1
   template:
@@ -258,17 +258,17 @@ spec:
           - name: CORE_PEER_TLS_ENABLED
             value: "true"
           - name: CORE_PEER_TLS_CERT_FILE
-            value: "/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/server.crt"
+            value: "/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1-example-com/peers/peer0-org1-example-com/tls/server.crt"
           - name: CORE_PEER_TLS_KEY_FILE
-            value: "/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/peers/peer0.org1.example.com}/tls/server.key"
+            value: "/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1-example-com/peers/peer0-org1-example-com}/tls/server.key"
           - name: CORE_PEER_TLS_ROOTCERT_FILE
-            value: "/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt"
+            value: "/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1-example-com/peers/peer0-org1-example-com/tls/ca.crt"
           - name: CORE_PEER_MSPCONFIGPATH
-            value: "/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp"
+            value: "/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1-example-com/users/Admin@org1-example-com/msp"
           - name: ORDER_TLS_CA
-            value: "/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer0.example.com/msp/tlscacerts/tlsca.example.com-cert.pem"
+            value: "/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example-com/orderers/orderer0-example-com/msp/tlscacerts/tlsca.example-com-cert.pem"
           - name: CORE_PEER_ADDRESS
-            value: "peer0.org1.example.com:7051"
+            value: "peer0-org1-example-com:7051"
           - name: CORE_PEER_LOCALMSPID
             value: "Org1MSP"
           workingDir: /opt/gopath/src/github.com/hyperledger/fabric/peer
@@ -300,4 +300,4 @@ spec:
             path: /var/run
         - name: hosts
           hostPath:
-            path: /etc/hosts	
+            path: /etc/hosts		
