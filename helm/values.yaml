@@ -4,19 +4,6 @@
 
 zkKafkaNamespace: fabric-zk-kafka
 
-zkName: zookeeper
-zkGroup:
-  - id: 1
-    servers: server.1=0.0.0.0:2888:3888 server.2=zookeeper2:2888:3888 server.3=zookeeper3:2888:3888
-  - id: 2
-    servers: server.1=zookeeper1:2888:3888 server.2=0.0.0.0:2888:3888 server.3=zookeeper3:2888:3888
-  - id: 3
-    servers: server.1=zookeeper1:2888:3888 server.2=zookeeper2:2888:3888 server.3=0.0.0.0:2888:3888
-
-kafkaName: kafka
-kafkaReplica: 4
-kafkaZkConnect: zookeeper1:2181,zookeeper2:2181,zookeeper3:2181
-
 ordererNamespace: example-com
 ordererName: orderer
 ordererReplica: 3
