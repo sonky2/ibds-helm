@@ -20,11 +20,10 @@ cp  ${destDir}/values-template.yaml  ${destDir}/values.yaml;
 for k in $(seq 1 $1)
 do
   ORG_NO=org${k};
-  ORG_B_NO=Org${k};
 
-  echo "##########################################################"
-  echo "##### replace ${ORG_NO}.example.com  *_sk  #########"
-  echo "##########################################################"
+  echo "#############################################################"
+  echo "##### replace ${ORG_NO}.example.com  *_sk  in values.yaml#########"
+  echo "#############################################################"
   cd  ./crypto-config/peerOrganizations/${ORG_NO}-example-com/ca/;
   PRIV_KEY=$(ls *_sk)
 
