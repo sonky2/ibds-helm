@@ -12,14 +12,14 @@ currentDirPath: /home/raft
 
 peerOrgs:
   - domain: org1-example-com
-    caFileName: 59e15f9850384d8ef0a8b38f73926427f1c360449a46ccd41b69f9e632635ef7_sk
+    caFileName: CA_FILE_NAME1
     MSPId: Org1MSP
     orgid: org1
   - domain: org2-example-com
-    caFileName: fbd5c9522c07a756369588aa9ea04528d060010c8038bbcfb50851f260580cfb_sk
+    caFileName: CA_FILE_NAME2
     MSPId: Org2MSP
     orgid: org2
   - domain: org3-example-com
-    caFileName: b7bab21244eb11c85239659cefdf8902fa98b9d5ee813a9ee79125c4897d35ab_sk
+    caFileName: CA_FILE_NAME3
     MSPId: Org3MSP
     orgid: org3
